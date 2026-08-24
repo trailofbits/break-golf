@@ -4,7 +4,6 @@
   "challenges": [
     {
       "slug": "spoc128",
-      "instance_name": "SpoC128",
       "title": "SpoC-128",
       "blurb": "Authenticity of SpoC-128, a NIST Lightweight Cryptography Round-2 candidate. Distinguish real SpoC from a replay-only ideal.",
       "tags": [
@@ -12,17 +11,8 @@
         "nist-lwc",
         "round-2"
       ],
-      "advantage_exponent": 2,
-      "exponent_rationale": "Decision game: advantage a needs ~a^-2 repetitions to amplify to constant confidence, so q/a^2 is the cost of deciding. Search-flavoured challenges (key recovery, forgery) set 1. No default is baked in; see Micciancio-Walter, On the Bit Security of Cryptographic Primitives.",
       "par_bits": 128,
-      "par_source": "SpoC-128 key length, NIST LWC Round-2 specification",
       "baseline_bits": 128.0,
-      "baseline_note": "Exhaustive key search. Exists for every challenge, so the frontier is never empty.",
-      "variant_of": null,
-      "what_changed": "",
-      "why": "",
-      "not_claimed": "",
-      "comparison_points": [],
       "files": [
         {
           "name": "SpoC/DDC.lean",
@@ -64,20 +54,19 @@
         "# edit it, then:",
         "lake build Solutions"
       ],
+      "instance_name": "SpoC128",
+      "advantage_exponent": 2,
+      "solution_name": "Solution.SpoC128.solution",
+      "solution_type": "Challenge.SpoC128.Solution",
       "permitted_axioms": [
         "propext",
         "Quot.sound",
         "Classical.choice"
       ],
-      "solution_name": "Solution.SpoC128.solution",
-      "solution_type": "Challenge.SpoC128.Solution",
-      "timeout_seconds": 1200,
-      "challenge_lean": "/-\nTRUSTED. The submission's entire type lives here, and the verifier builds its own\ncopy.\n\nThe score is **not** a form field the platform injects. A submission declares its\nown `budget`, `advNum` and `advDen` as ordinary Lean definitions, and the type\nbelow is *indexed by them*:\n\n    def solution : Challenge.SpoC128.Solution budget advNum advDen\n\nSo the numbers are inside the proposition by construction, and the verifier reads\nthem back out of Lean with `#eval` rather than parsing them out of an issue.\nThere is no way for a claimed score and a proved score to differ, because they\nare the same three definitions.\n-/\nimport Golf.Instances.SpoC128.Interface\n\nnamespace Challenge.SpoC128\n\nopen RandomSystems\nopen RandomSystems.CR18\nopen Golf.Instances.SpoC128\n\n/-- **What a submission is**, indexed by the score it claims.\n\n`budget` is the query count and `advNum / advDen` the advantage. Both appear in\nthe type of `wins`, so claiming a smaller budget or a larger advantage changes\nthe theorem rather than the label on it. -/\nstructure Solution (budget advNum advDen : Nat) where\n  /-- The adaptive query strategy: given the answers so far, the next query. -/\n  strategy : game.Param \u2192 PFunDDS.DDE game.Query game.Response\n  /-- The verdict, read off the observed transcript. -/\n  verdict : List (game.Query \u00d7 Option game.Response) \u2192 Bool\n  /-- The advantage must be a positive rational to be scoreable. -/\n  advNum_pos : 0 < advNum\n  advDen_pos : 0 < advDen\n  /-- **The win condition.** Allowed `budget` queries, at every public parameter,\n  the signed advantage between the ideal and real worlds is at least\n  `advNum / advDen`. -/\n  wins : Golf.Attack.Wins (G := game) \u27e8strategy, verdict\u27e9 budget\n    ((advNum : Real) / (advDen : Real))\n\nend Challenge.SpoC128\n",
-      "solve_template": "/-\n`Solve.lean` \u2014 the file you submit.\n\nProvide exactly one declaration, `solution`, at the type the challenge pins.\nThe statement is not yours to change; `budget` and the claimed advantage come\nfrom the submission form and sit inside that type.\n\nBefore submitting: build locally, and check the axiom footprint against\n`permitted_axioms` in the challenge config. `native_decide` is not part of the\naccepted proof surface, and a proof that only closes with a raised\n`maxHeartbeats` is likely to exceed the verifier timeout.\n-/\nimport Challenges.SpoC128.Challenge\n\nnamespace Solution.SpoC128\n\nopen RandomSystems.CR18\nopen Golf.Instances.SpoC128\n\ndef solution : Challenge.SpoC128.Solution where\n  strategy := fun _ _ => none\n  verdict := fun _ => false\n  wins := by\n    sorry\n\nend Solution.SpoC128\n"
+      "timeout_seconds": 1200
     },
     {
       "slug": "spoc128-ds",
-      "instance_name": "SpoC128DS",
       "title": "SpoC-128-DS",
       "blurb": "SpoC-128 with the nonce domain-separated from the mode controls. The published three-query key recovery cannot be addressed here. Whether anything else can is open.",
       "tags": [
@@ -86,23 +75,8 @@
         "variant",
         "open"
       ],
-      "advantage_exponent": 2,
-      "exponent_rationale": "Decision game: advantage a needs ~a^-2 repetitions to amplify to constant confidence, so q/a^2 is the cost of deciding. Search-flavoured challenges (key recovery, forgery) set 1. No default is baked in; see Micciancio-Walter, On the Bit Security of Cryptographic Primitives.",
       "par_bits": 128,
-      "par_source": "SpoC-128 key length, NIST LWC Round-2 specification",
       "baseline_bits": 128.0,
-      "baseline_note": "Exhaustive key search. The only thing on the frontier so far.",
-      "variant_of": "spoc128",
-      "what_changed": "The four mode-control bits (tag 0x80, plaintext 0x40, associated data 0x20, partial block 0x10) are reserved in the nonce: a legal nonce satisfies `n &&& 0xF0 = 0`. The mode itself is untouched.",
-      "why": "`load key n` puts the nonce in the rate and `tagInput` XORs `tagControl` into the same rate, so `tagInput (load key n) = load key (n ^^^ tagControl)`. One permutation input was reachable by two queries, and since the permutation is public and invertible, half of it leaks in a tag and half in a ciphertext block. Reserving the control bits makes `n ^^^ tagControl` unaddressable.",
-      "not_claimed": "That this variant is secure. Nobody has looked. Closing one published route into a mode is not an argument that no other route exists \u2014 which is why it is on the board.",
-      "comparison_points": [
-        {
-          "name": "SpoC-128 (unrestricted nonce)",
-          "score_bits": 1.585,
-          "caveats": "The parent challenge, broken at 3 queries and advantage 1. Its attack needs nonce = 0x80, which is illegal here, so that score does not transfer."
-        }
-      ],
       "files": [
         {
           "name": "SpoC/DDC.lean",
@@ -139,16 +113,16 @@
         "# edit it, then:",
         "lake build Solutions"
       ],
+      "instance_name": "SpoC128DS",
+      "advantage_exponent": 2,
+      "solution_name": "Solution.SpoC128DS.solution",
+      "solution_type": "Challenge.SpoC128DS.Solution",
       "permitted_axioms": [
         "propext",
         "Quot.sound",
         "Classical.choice"
       ],
-      "solution_name": "Solution.SpoC128DS.solution",
-      "solution_type": "Challenge.SpoC128DS.Solution",
-      "timeout_seconds": 1200,
-      "challenge_lean": "/-\nTRUSTED. The submission's entire type lives here, and the verifier builds its own\ncopy.\n\nThe score is **not** a form field the platform injects. A submission declares its\nown `budget`, `advNum` and `advDen` as ordinary Lean definitions, and the type\nbelow is *indexed by them*:\n\n    def solution : Challenge.SpoC128DS.Solution budget advNum advDen\n\nSo the numbers are inside the proposition by construction, and the verifier reads\nthem back out of Lean with `#eval` rather than parsing them out of an issue.\nThere is no way for a claimed score and a proved score to differ, because they\nare the same three definitions.\n-/\nimport Golf.Instances.SpoC128DS.Interface\n\nnamespace Challenge.SpoC128DS\n\nopen RandomSystems\nopen RandomSystems.CR18\nopen Golf.Instances.SpoC128DS\n\n/-- **What a submission is**, indexed by the score it claims.\n\n`budget` is the query count and `advNum / advDen` the advantage. Both appear in\nthe type of `wins`, so claiming a smaller budget or a larger advantage changes\nthe theorem rather than the label on it. -/\nstructure Solution (budget advNum advDen : Nat) where\n  /-- The adaptive query strategy: given the answers so far, the next query. -/\n  strategy : game.Param \u2192 PFunDDS.DDE game.Query game.Response\n  /-- The verdict, read off the observed transcript. -/\n  verdict : List (game.Query \u00d7 Option game.Response) \u2192 Bool\n  /-- The advantage must be a positive rational to be scoreable. -/\n  advNum_pos : 0 < advNum\n  advDen_pos : 0 < advDen\n  /-- **The win condition.** Allowed `budget` queries, at every public parameter,\n  the signed advantage between the ideal and real worlds is at least\n  `advNum / advDen`. -/\n  wins : Golf.Attack.Wins (G := game) \u27e8strategy, verdict\u27e9 budget\n    ((advNum : Real) / (advDen : Real))\n\nend Challenge.SpoC128DS\n",
-      "solve_template": "/-\n`Solve.lean` \u2014 the file you submit.\n\nProvide exactly one declaration, `solution`, at the type the challenge pins.\nThe statement is not yours to change; `budget` and the claimed advantage come\nfrom the submission form and sit inside that type.\n\nBefore submitting: build locally, and check the axiom footprint against\n`permitted_axioms` in the challenge config. `native_decide` is not part of the\naccepted proof surface, and a proof that only closes with a raised\n`maxHeartbeats` is likely to exceed the verifier timeout.\n-/\nimport Challenges.SpoC128DS.Challenge\n\nnamespace Solution.SpoC128DS\n\nopen RandomSystems.CR18\nopen Golf.Instances.SpoC128DS\n\ndef solution : Challenge.SpoC128DS.Solution where\n  strategy := fun _ _ => none\n  verdict := fun _ => false\n  wins := by\n    sorry\n\nend Solution.SpoC128DS\n"
+      "timeout_seconds": 1200
     }
   ]
 }

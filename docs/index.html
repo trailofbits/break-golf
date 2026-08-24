@@ -19,7 +19,7 @@
 
 <section>
   <h2>How it works</h2>
-  <p>A challenge fixes two worlds and the statement you must prove. You write an adversary and a proof that it tells them apart. <strong>The win is the proof</strong> — nothing is run or sampled. Each challenge links the scheme, the game, and the type you must inhabit; read them, clone the repo, and build.</p>
+  <p>A challenge gives you two worlds and the type your proof must inhabit. Write an adversary, prove it tells them apart. Nothing is run — <strong>the win is the proof</strong>.</p>
   <div class="scroller"><table>
     <thead><tr><th scope="col">You supply</th><th scope="col"></th></tr></thead>
     <tbody>
@@ -34,15 +34,15 @@
 <section>
   <h2>Scoring</h2>
   <pre><code>score = log₂( budget / advantage^e )</code></pre>
-  <p>The security level, in bits, that your attack refutes. Lower is better; nothing is fixed in advance. <strong>Par is the designer's own claim</strong>, from the specification — under par is a break of it.</p>
-  <p>You declare <code>budget</code>, <code>advNum</code> and <code>advDen</code> in your own Lean, and the challenge type is <em>indexed by them</em>. Claim fewer queries or more advantage and the theorem becomes a stronger one your proof stops discharging; claim less than you can prove and the score gets worse. CI reads the numbers back out of Lean, so there is nothing to state and no direction to game in.</p>
+  <p>Bits of security your attack refutes; lower is better. <strong>Par is the designer's own claim.</strong></p>
+  <p>You declare <code>budget</code>, <code>advNum</code> and <code>advDen</code> in your Lean and the challenge type is indexed by them — so CI reads your score out of the proof, and there is nothing to claim.</p>
 </section>
 
 <section id="challenges"></section>
 
 <section>
   <h2>Submit</h2>
-  <p>Opens a prefilled issue titled <code>verify: &lt;challenge&gt;</code>. Your score is not a form field — <code>budget</code>, <code>advNum</code> and <code>advDen</code> are definitions in your Lean, and the challenge type is indexed by them.</p>
+  <p>Opens a prefilled issue titled <code>verify: &lt;challenge&gt;</code>.</p>
   <form id="submit-form">
     <div class="row">
       <label>Challenge<select id="f-challenge"></select></label>
@@ -57,7 +57,7 @@
 
 <footer>
   <span id="foot-repo"></span><br />
-  Scoring rules, the verifier contract, and what the score does not capture: see the README.
+  Verifier contract and scoring rules: see the README.
 </footer>
 
 </div>

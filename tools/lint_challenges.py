@@ -11,8 +11,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 REQUIRED = ("slug", "instance_name", "title", "blurb", "tags", "challenge_module",
             "solution_module", "solution_name", "solution_type", "score_source",
             "scoring", "par", "baseline", "permitted_axioms", "timeout_seconds")
-REQUIRED_SCORING = ("advantage_exponent", "exponent_rationale")
-REQUIRED_PAR = ("claimed_security_bits", "source")
+REQUIRED_SCORING = ("advantage_exponent",)
+REQUIRED_PAR = ("claimed_security_bits",)
 REQUIRED_BASELINE = ("budget_log2", "advNum", "advDen")
 
 

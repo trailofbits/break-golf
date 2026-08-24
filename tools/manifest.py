@@ -28,35 +28,25 @@ def load() -> list[dict]:
         base = cfg["baseline"]
         out.append(
             {
+                # shown on the card
                 "slug": cfg["slug"],
-                "instance_name": cfg["instance_name"],
                 "title": cfg.get("title", cfg["instance_name"]),
                 "blurb": cfg.get("blurb", ""),
                 "tags": cfg.get("tags", []),
-                "advantage_exponent": scoring["advantage_exponent"],
-                "exponent_rationale": scoring.get("exponent_rationale", ""),
                 "par_bits": cfg["par"]["claimed_security_bits"],
-                "par_source": cfg["par"]["source"],
                 "baseline_bits": bits(
-                    2 ** base["budget_log2"],
-                    base["advNum"],
-                    base["advDen"],
+                    2 ** base["budget_log2"], base["advNum"], base["advDen"],
                     scoring["advantage_exponent"],
                 ),
-                "baseline_note": base["note"],
-                "variant_of": cfg.get("variant_of"),
-                "what_changed": cfg.get("what_changed", ""),
-                "why": cfg.get("why", ""),
-                "not_claimed": cfg.get("not_claimed", ""),
-                "comparison_points": cfg.get("comparison_points", []),
                 "files": cfg.get("files", []),
                 "setup": cfg.get("setup", []),
-                "permitted_axioms": cfg["permitted_axioms"],
+                # used by tools/verify.py, not rendered
+                "instance_name": cfg["instance_name"],
+                "advantage_exponent": scoring["advantage_exponent"],
                 "solution_name": cfg["solution_name"],
                 "solution_type": cfg["solution_type"],
+                "permitted_axioms": cfg["permitted_axioms"],
                 "timeout_seconds": cfg["timeout_seconds"],
-                "challenge_lean": (CHALLENGES / "Challenges" / d.name / "Challenge.lean").read_text(),
-                "solve_template": (d / "Solve.template.lean").read_text(),
             }
         )
     return out

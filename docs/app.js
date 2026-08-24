@@ -43,25 +43,15 @@ function renderChallenges() {
   <div class="tags">${c.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
   <div class="statrow">
     <div class="stat"><span class="v">${best === null ? "—" : fmtBits(best)}</span><span class="k">best, bits</span></div>
-    <div class="stat"><span class="v">${c.par_bits}</span><span class="k">par (claimed)</span></div>
-    <div class="stat"><span class="v">${fmtBits(c.baseline_bits)}</span><span class="k">baseline</span></div>
+    <div class="stat"><span class="v">${c.par_bits}</span><span class="k">par</span></div>
     <div class="stat"><span class="v">${recs.length}</span><span class="k">records</span></div>
   </div>
-  ${c.what_changed ? `
-  <div class="variant">
-    <p><b>Changed from ${esc(c.variant_of || "")}.</b> ${esc(c.what_changed)}</p>
-    <p><b>Why.</b> ${esc(c.why)}</p>
-  </div>` : ""}
-  <div>
-    <span class="lbl">files</span>
-    <ul class="files">${c.files.map((f) =>
-      `<li><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a> — ${esc(f.what)}</li>`).join("")}</ul>
-  </div>
+  <ul class="files">${c.files.map((f) =>
+    `<li><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a> — ${esc(f.what)}</li>`).join("")}</ul>
   <details>
     <summary>Build it locally</summary>
     <pre><code>${c.setup.map(esc).join("\n")}</code></pre>
   </details>
-  <p class="meta">exponent ${c.advantage_exponent} &middot; par ${c.par_bits} bits, ${esc(c.par_source)} &middot; axioms ${c.permitted_axioms.map(esc).join(", ")} &middot; ${c.timeout_seconds}s</p>
 </div>
 ${recs.length ? `<div class="scroller"><table>
   <thead><tr><th scope="col">Bits</th><th scope="col">Queries</th><th scope="col">Advantage</th>
