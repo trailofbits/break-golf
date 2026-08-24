@@ -28,7 +28,7 @@ open RandomSystems.SpoC
 
 /-- SpoC-128 as a board game: real SpoC against the replay-only ideal, over the
 public permutation. -/
-noncomputable def game : Golf.Game where
+@[reducible] noncomputable def game : Golf.Game where
   Param := Equiv.Perm RandomSystems.SpoC.State
   Query := RandomSystems.SpoC.Query
   Response := RandomSystems.SpoC.Response

@@ -127,7 +127,7 @@ noncomputable def idealSystem (permutation : Equiv.Perm State) :
     Dist.fTransform_isProbDist _ Dist.uniform_isProbDist⟩
 
 /-- SpoC-128 with the nonce domain-separated from the mode controls. -/
-noncomputable def game : Golf.Game where
+@[reducible] noncomputable def game : Golf.Game where
   Param := Equiv.Perm State
   Query := Query
   Response := Response
