@@ -15,6 +15,17 @@
       },
       {
         "solver": "MarcIlunga",
+        "assisted_by": "Opus 5 max",
+        "budget": 3,
+        "advNum": 1,
+        "advDen": 1,
+        "verified_at": null,
+        "issue": 5,
+        "description": "End-to-end test of the current contract: the score lives in the Lean below, not in this issue.",
+        "bits": 1.585
+      },
+      {
+        "solver": "MarcIlunga",
         "assisted_by": "Claude Opus 5",
         "budget": 6,
         "advNum": 1,

@@ -21,6 +21,16 @@
         "verified_at": "2026-08-13",
         "issue": null,
         "description": "Three-query key recovery. `attack_distinguishing_advantage` proves advantage exactly 1 for every key and every permutation; `parAttack_wins_above` extends it to every larger budget."
+      },
+      {
+        "solver": "MarcIlunga",
+        "assisted_by": "Opus 5 max",
+        "budget": 3,
+        "advNum": 1,
+        "advDen": 1,
+        "verified_at": null,
+        "issue": 5,
+        "description": "End-to-end test of the current contract: the score lives in the Lean below, not in this issue."
       }
     ]
   }
