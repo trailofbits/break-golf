@@ -1,0 +1,173 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      challenge:
+        description: "Challenge slug (spoc128, spoc128-ds)"
+        required: true
+      body:
+        description: "Submission body: budget, advantage, and a fenced lean block"
+        required: true
+
+# Read-only, and nothing else. No write scopes, so a submission cannot push,
+# comment, or reach a secret.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.challenge || 'push' }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Workflows parse
+        run: python3 -c "import yaml,glob; [yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml')]; print('workflows parse')"
+
+      - name: Generated files match their sources
+        run: |
+          python3 tools/manifest.py --check
+          python3 tools/ledger.py --check
+
+      - name: Every challenge config is complete
+        run: python3 tools/lint_challenges.py
+
+      - name: The site loads its own generated data
+        run: python3 tools/check_site.py
+
+      - uses: ./.github/actions/setup-lean
+        id: lean
+
+      # The reference attack really proves what the board says it proves.
+      - name: The reference submission verifies
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          python3 - <<'EOF' > /tmp/body.md
+          import pathlib
+          print("```lean")
+          print(pathlib.Path("examples/Solve.reference.lean").read_text())
+          print("```")
+          EOF
+          python3 tools/verify.py spoc128 --build < /tmp/body.md
+
+      - name: The same proof at a smaller budget is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          sed 's/^def budget : Nat := 3/def budget : Nat := 1/' /tmp/body.md > /tmp/under.md
+          if python3 tools/verify.py spoc128 --build < /tmp/under.md; then
+            echo "::error::an unproved budget was accepted"; exit 1
+          fi
+
+      - name: An inflated advantage is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          sed 's/^def advNum : Nat := 1/def advNum : Nat := 2/' /tmp/body.md > /tmp/over.md
+          if python3 tools/verify.py spoc128 --build < /tmp/over.md; then
+            echo "::error::an unproved advantage was accepted"; exit 1
+          fi
+
+      - name: A `sorry` is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          if printf '```lean\ndef solution : Challenge.SpoC128.Solution := by sorry\n```\n' \
+               | python3 tools/verify.py spoc128 --build; then
+            echo "::error::sorry was accepted"; exit 1
+          fi
+
+      # Without the type-pinning audit these two are "proved" at 0 bits.
+      - name: A submission declaring its own Solution type is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          if printf '```lean\nnamespace Challenge.SpoC128\nstructure Solution where\n  ok : True\nend Challenge.SpoC128\nnamespace Solution.SpoC128\ndef solution : Challenge.SpoC128.Solution := ⟨trivial⟩\nend Solution.SpoC128\n```\n' \
+               | python3 tools/verify.py spoc128 --build; then
+            echo "::error::a self-declared Solution type was accepted"; exit 1
+          fi
+
+      - name: A submission at some other type is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          if printf '```lean\nnamespace Solution.SpoC128\nstructure Trivial where\n  ok : True\ndef solution : Trivial := ⟨trivial⟩\nend Solution.SpoC128\n-- Challenge.SpoC128.Solution\n```\n' \
+               | python3 tools/verify.py spoc128 --build; then
+            echo "::error::a submission at the wrong type was accepted"; exit 1
+          fi
+
+      # The text scan cannot see this one; only the axiom audit catches it.
+      - name: A custom axiom is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          if printf '```lean\nimport Challenges.SpoC128.Challenge\nnamespace Solution.SpoC128\naxiom cheat : Challenge.SpoC128.Solution\nnoncomputable def solution : Challenge.SpoC128.Solution := cheat\nend Solution.SpoC128\n```\n' \
+               | python3 tools/verify.py spoc128 --build; then
+            echo "::error::a custom axiom was accepted"; exit 1
+          fi
+
+      - name: A submission for another challenge is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          if printf '```lean\ndef solution : Challenge.SpoC128DS.Solution := s\n```\n' \
+               | python3 tools/verify.py spoc128; then
+            echo "::error::a submission naming another challenge was accepted"; exit 1
+          fi
+
+      - name: An unknown challenge is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          if printf '```lean\ndef solution : Challenge.SpoC128.Solution := s\n```\n' \
+               | python3 tools/verify.py no-such-challenge; then
+            echo "::error::unknown challenge was accepted"; exit 1
+          fi
+
+      - name: A zero advantage is rejected
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        run: |
+          sed 's/^def advNum : Nat := 1/def advNum : Nat := 0/' /tmp/body.md > /tmp/zero.md
+          if python3 tools/verify.py spoc128 --build < /tmp/zero.md; then
+            echo "::error::zero advantage was accepted"; exit 1
+          fi
+
+  # One submission, on demand, without opening an issue.
+  dispatch:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-lean
+        id: lean
+      - name: Verify
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        env:
+          CHALLENGE: ${{ inputs.challenge }}
+          BODY: ${{ inputs.body }}
+        run: printf '%s' "$BODY" | python3 tools/verify.py "$CHALLENGE" --build | tee verdict.json
+      - name: Summary
+        if: always()
+        shell: bash
+        env:
+          CHALLENGE: ${{ inputs.challenge }}
+        run: |
+          {
+            echo "### Verdict for \`$CHALLENGE\`"
+            echo '```json'
+            cat verdict.json 2>/dev/null || echo '{"ok": false, "reason": "verifier_error"}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

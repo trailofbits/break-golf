@@ -1,0 +1,58 @@
+{
+  "instance_name": "SpoC128",
+  "slug": "spoc128",
+  "title": "SpoC-128",
+  "blurb": "Authenticity of SpoC-128, a NIST Lightweight Cryptography Round-2 candidate. Distinguish real SpoC from a replay-only ideal.",
+  "tags": [
+    "aead",
+    "nist-lwc",
+    "round-2"
+  ],
+  "challenge_module": "Golf.Challenges.SpoC128.Challenge",
+  "solution_module": "Solution.SpoC128.Solve",
+  "scoring": {
+    "figure_of_merit": "work_factor",
+    "advantage_exponent": 2,
+    "display": "log2",
+    "note": "score = log2(budget / advantage^exponent), the security level in bits the attack refutes. Lower is better. No target advantage is fixed: the board measures what a submission proves, because on a new design nobody knows what is reachable.",
+    "exponent_rationale": "Decision game: advantage a needs ~a^-2 repetitions to amplify to constant confidence, so q/a^2 is the cost of deciding. Search-flavoured challenges (key recovery, forgery) set 1. No default is baked in; see Micciancio-Walter, On the Bit Security of Cryptographic Primitives.",
+    "not_captured": [
+      "offline work: out of scope by decision \u2014 the board scores query complexity, information-theoretically",
+      "amplification: q/a^e assumes independent repetition is available",
+      "ties are not equivalences: the same bit level can hold very different results"
+    ]
+  },
+  "par": {
+    "claimed_security_bits": 128,
+    "source": "SpoC-128 key length, NIST LWC Round-2 specification",
+    "note": "Par is the designer's own security claim, not a guess about attack difficulty. Under par is a break of the claim."
+  },
+  "baseline": {
+    "budget_log2": 128,
+    "advNum": 1,
+    "advDen": 1,
+    "note": "Exhaustive key search. Exists for every challenge, so the frontier is never empty."
+  },
+  "comparison_points": [],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "forbidden_tactics": [
+    "native_decide"
+  ],
+  "forbidden_options": [
+    "maxHeartbeats",
+    "maxRecDepth"
+  ],
+  "timeout_seconds": 1200,
+  "solution_name": "Solution.SpoC128.solution",
+  "solution_type": "Challenge.SpoC128.Solution",
+  "score_source": {
+    "budget": "Solution.SpoC128.budget",
+    "advNum": "Solution.SpoC128.advNum",
+    "advDen": "Solution.SpoC128.advDen",
+    "note": "Declared by the submission, in Lean. The Solution type is indexed by them, so they are part of what is proved; the verifier reads them back with #eval rather than parsing a form."
+  }
+}

@@ -1,0 +1,80 @@
+name: Setup Lean
+description: >
+  Get a built challenge tree from ONE cache restore.
+
+  The profile that motivated this: with three separate caches (ours, plus two
+  from `leanprover/lean-action`) a warm run spent ~90s downloading and ~9s doing
+  Lean. Toolchain and Lake tree are one entry now, `lake update` is gone because
+  the manifest is committed, and nothing is fetched on a hit.
+
+outputs:
+  project:
+    description: "Directory to run lake and tools/verify.py in"
+    value: ${{ steps.warm.outputs.project }}
+
+runs:
+  using: composite
+  steps:
+    - id: warm
+      shell: bash
+      run: |
+        if [ -n "${BREAK_GOLF_WARM:-}" ] && [ -d "$BREAK_GOLF_WARM/.lake" ]; then
+          rsync -a --delete --exclude '.lake' --exclude '.git' \
+            "$GITHUB_WORKSPACE/" "$BREAK_GOLF_WARM/"
+          echo "project=$BREAK_GOLF_WARM" >> "$GITHUB_OUTPUT"
+          echo "warm=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "project=$GITHUB_WORKSPACE" >> "$GITHUB_OUTPUT"
+          echo "warm=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    # One entry, not three: the toolchain and the whole Lake tree together, so a
+    # warm run makes a single request instead of three sequential ones.
+    - name: Cache the toolchain and the Lake tree
+      id: cache
+      if: steps.warm.outputs.warm != 'true'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.elan
+          .lake
+        key: lean-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.lean', 'lake-manifest.json') }}-${{ hashFiles('Golf/**/*.lean', 'challenges/**/*.lean', 'vendor/**/*.lean') }}
+        restore-keys: |
+          lean-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.lean', 'lake-manifest.json') }}-
+          lean-${{ runner.os }}-
+
+    - name: Install elan
+      if: steps.warm.outputs.warm != 'true'
+      shell: bash
+      run: |
+        if [ ! -x "$HOME/.elan/bin/lake" ]; then
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+        fi
+        echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+    # The pinned random-systems revision requires a sibling `abstract-crypto` by
+    # relative path, and that package is org-internal. The challenge tree reaches
+    # exactly two modules from it, both presentation layers, so `vendor/` carries
+    # a stub. Idempotent, so it is safe over a restored tree.
+    - name: Place the abstract-crypto stub
+      if: steps.warm.outputs.warm != 'true'
+      shell: bash
+      run: |
+        mkdir -p .lake/packages
+        cp -R vendor/abstract-crypto .lake/packages/abstract-crypto
+
+    # Only a miss has anything to fetch. `lake build` resolves from the committed
+    # manifest, so there is no `lake update` — that pinned revision must not move
+    # under a board mid-verification anyway.
+    - name: Fetch dependencies and Mathlib oleans
+      if: steps.warm.outputs.warm != 'true' && steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        lake build --no-build Golf 2>/dev/null || true
+        (cd .lake/packages/mathlib && lake exe cache get)
+
+    - name: Build the challenge tree
+      if: steps.warm.outputs.warm != 'true'
+      shell: bash
+      run: lake build Golf Challenges

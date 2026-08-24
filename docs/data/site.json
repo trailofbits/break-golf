@@ -1,0 +1,6 @@
+{
+  "repo": "trailofbits/break-golf",
+  "title": "break golf",
+  "tagline": "Break cryptographic schemes. Prove it in Lean 4.",
+  "status": "Submissions are verified by Lean. A `verify:` issue is elaborated against the challenge's pinned type and axiom-audited in CI; the verdict comes back as a comment. Records are still added by hand."
+}

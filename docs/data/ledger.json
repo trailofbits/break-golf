@@ -1,0 +1,29 @@
+{
+  "note": "Seed data for the proof-of-concept. Records are the two SpoC-128 results that exist as checked Lean in trailofbits/random-systems; nothing here has been through the (unbuilt) verifier.",
+  "records": {
+    "spoc128": [
+      {
+        "solver": "MarcIlunga",
+        "assisted_by": "Claude Opus 5",
+        "budget": 3,
+        "advNum": 1,
+        "advDen": 1,
+        "verified_at": "2026-08-13",
+        "issue": null,
+        "description": "Three-query key recovery. `attack_distinguishing_advantage` proves advantage exactly 1 for every key and every permutation; `parAttack_wins_above` extends it to every larger budget.",
+        "bits": 1.585
+      },
+      {
+        "solver": "MarcIlunga",
+        "assisted_by": "Claude Opus 5",
+        "budget": 6,
+        "advNum": 1,
+        "advDen": 1,
+        "verified_at": "2026-08-13",
+        "issue": null,
+        "description": "Six-call DSL form: three challenge queries plus three public-permutation calls, with proved step and call bounds (`source_calls_le`).",
+        "bits": 2.585
+      }
+    ]
+  }
+}

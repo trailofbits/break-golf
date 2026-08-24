@@ -1,0 +1,136 @@
+name: submission
+
+# A submission arrives as an issue and the verdict comes back as a comment, the
+# same shape as trailofbits/lean-golf. An issue body never enters git history, so
+# the repo does not accumulate solutions.
+#
+# Convention: title `verify: <challenge>`, body carrying the claimed budget and
+# advantage plus a fenced `lean` block holding Solve.lean.
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: submission-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Handles untrusted input. No write scopes anywhere in this job.
+  verify:
+    if: startsWith(github.event.issue.title, 'verify:')
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    timeout-minutes: 60
+    outputs:
+      challenge: ${{ steps.parse.outputs.challenge }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-lean
+        id: lean
+
+      - id: parse
+        shell: bash
+        env:
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          CHALLENGE="${TITLE#verify:}"
+          CHALLENGE="$(echo "$CHALLENGE" | tr -d '[:space:]')"
+          echo "challenge=$CHALLENGE" >> "$GITHUB_OUTPUT"
+
+      # The body is untrusted text, so it goes through the environment and is
+      # never interpolated into the shell. `shell: bash` is load-bearing: the
+      # default runner shell has no pipefail, so a pipe would swallow the exit
+      # status and every submission would report as ok.
+      - name: Verify
+        shell: bash
+        working-directory: ${{ steps.lean.outputs.project }}
+        env:
+          CHALLENGE: ${{ steps.parse.outputs.challenge }}
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          set +e
+          printf '%s' "$BODY" | python3 tools/verify.py "$CHALLENGE" --build > "$GITHUB_WORKSPACE/verdict.json" 2>&1
+          cat "$GITHUB_WORKSPACE/verdict.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verdict
+          path: verdict.json
+          retention-days: 7
+
+  # Separate job so the untrusted parse never runs with write access. This one
+  # holds the write scopes and never touches the submitted Lean: it reads only
+  # the verdict its sibling produced.
+  report:
+    needs: verify
+    if: always() && startsWith(github.event.issue.title, 'verify:')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: verdict
+        continue-on-error: true
+
+      - name: Comment the verdict
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          CHALLENGE: ${{ needs.verify.outputs.challenge }}
+        run: |
+          VERDICT=$(cat verdict.json 2>/dev/null || echo '{"ok": false, "reason": "verifier_error"}')
+          if echo "$VERDICT" | grep -q '"proved": true'; then
+            HEAD="✅ **\`$CHALLENGE\` — verified.** Your submission elaborates at the type this challenge pins, indexed by the score you declared, and its axiom footprint is clean. The numbers below were read out of your Lean, not out of this issue."
+          else
+            HEAD="❌ **\`$CHALLENGE\` — rejected.**"
+          fi
+          printf '%s\n\n```json\n%s\n```\n' "$HEAD" "$VERDICT" > comment.md
+          gh issue comment "$NUMBER" --repo "$REPO" --body-file comment.md
+
+      # A verified submission joins the board. `record.py` refuses anything that
+      # is not both ok and proved, so a shape-only pass can never reach the
+      # ledger, and it keys on the issue number so an edit updates one record
+      # rather than adding a second.
+      - name: Record it on the board
+        if: success()
+        shell: bash
+        env:
+          CHALLENGE: ${{ needs.verify.outputs.challenge }}
+          NUMBER: ${{ github.event.issue.number }}
+          SOLVER: ${{ github.event.issue.user.login }}
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          if ! grep -q '"proved": true' verdict.json 2>/dev/null; then
+            echo "not verified; nothing to record"; exit 0
+          fi
+          ASSIST=$(printf '%s' "$BODY" | sed -n 's/^\*\*Assisted by:\*\*[[:space:]]*//p' | head -1)
+          NOTES=$(printf '%s' "$BODY" | sed -n 's/^\*\*Notes:\*\*[[:space:]]*//p' | head -1)
+          python3 tools/record.py --challenge "$CHALLENGE" --issue "$NUMBER" \
+            --solver "$SOLVER" --assisted-by "$ASSIST" --description "$NOTES" < verdict.json
+
+      - name: Publish the board
+        if: success()
+        shell: bash
+        run: |
+          if git diff --quiet -- scoring/ledger.json docs/data/ledger.json; then
+            echo "board unchanged"; exit 0
+          fi
+          git config user.name "break-golf"
+          git config user.email "break-golf@users.noreply.github.com"
+          git add scoring/ledger.json docs/data/ledger.json
+          git commit -m "board: record #${{ github.event.issue.number }} on ${{ needs.verify.outputs.challenge }}"
+          for i in 1 2 3; do
+            git pull --rebase --quiet origin main && git push origin HEAD:main && exit 0
+            echo "push race, retrying"; sleep 5
+          done
+          echo "::error::could not publish the board"; exit 1

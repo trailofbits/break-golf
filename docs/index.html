@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>break golf</title>
+<meta name="description" content="Break cryptographic schemes. Prove it in Lean 4." />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <span class="kicker">verified in lean 4</span>
+  <h1 id="site-title">break golf</h1>
+  <p class="tagline" id="site-tagline"></p>
+  <p class="status" id="site-status"></p>
+</header>
+
+<section>
+  <h2>How it works</h2>
+  <p>A challenge fixes two worlds and the statement you must prove. You write an adversary and a proof that it tells them apart. <strong>The win is the proof</strong> — nothing is run or sampled. A submission is one declaration inhabiting a type the challenge pins in its own <code>Challenge.lean</code>, which the verifier builds its own copy of.</p>
+  <div class="scroller"><table>
+    <thead><tr><th scope="col">You supply</th><th scope="col"></th></tr></thead>
+    <tbody>
+      <tr><td class="num">strategy</td><td>given the answers so far, the next query</td></tr>
+      <tr><td class="num">verdict</td><td>accept or reject, read off the transcript</td></tr>
+      <tr><td class="num">wins</td><td>the proof, at the pinned type</td></tr>
+      <tr><td class="num">budget, advNum, advDen</td><td>your score, as Lean definitions the type is indexed by</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Scoring</h2>
+  <pre><code>score = log₂( budget / advantage^e )</code></pre>
+  <p>The security level, in bits, that your attack refutes. Lower is better; nothing is fixed in advance. <strong>Par is the designer's own claim</strong>, from the specification — under par is a break of it.</p>
+  <p>You declare <code>budget</code>, <code>advNum</code> and <code>advDen</code> in your own Lean, and the challenge type is <em>indexed by them</em>. Claim fewer queries or more advantage and the theorem becomes a stronger one your proof stops discharging; claim less than you can prove and the score gets worse. CI reads the numbers back out of Lean, so there is nothing to state and no direction to game in.</p>
+</section>
+
+<section id="challenges"></section>
+
+<section>
+  <h2>Submit</h2>
+  <p>Opens a prefilled issue titled <code>verify: &lt;challenge&gt;</code>. Your score is not a form field — <code>budget</code>, <code>advNum</code> and <code>advDen</code> are definitions in your Lean, and the challenge type is indexed by them.</p>
+  <form id="submit-form">
+    <div class="row">
+      <label>Challenge<select id="f-challenge"></select></label>
+      <label>Assisted by<input id="f-assist" type="text" placeholder="Opus 5 max" /></label>
+      <label>Notes<input id="f-desc" type="text" placeholder="what you improved, and how" /></label>
+    </div>
+    <div class="scoreline" id="f-score"></div>
+    <label>Solve.lean<textarea id="f-solve" spellcheck="false"></textarea></label>
+    <button type="submit" id="f-submit">Open a submission issue</button>
+  </form>
+</section>
+
+<footer>
+  <span id="foot-repo"></span><br />
+  Scoring rules, the verifier contract, and what the score does not capture: see the README.
+</footer>
+
+</div>
+<script src="./app.js"></script>
+</body>
+</html>
