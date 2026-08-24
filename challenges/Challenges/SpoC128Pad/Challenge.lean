@@ -6,20 +6,20 @@ The score is **not** a form field the platform injects. A submission declares it
 own `budget`, `advNum` and `advDen` as ordinary Lean definitions, and the type
 below is *indexed by them*:
 
-    def solution : Challenge.SpoC128DS.Solution budget advNum advDen
+    def solution : Challenge.SpoC128Pad.Solution budget advNum advDen
 
 So the numbers are inside the proposition by construction, and the verifier reads
 them back out of Lean with `#eval` rather than parsing them out of an issue.
 There is no way for a claimed score and a proved score to differ, because they
 are the same three definitions.
 -/
-import Golf.Instances.SpoC128DS.Interface
+import Golf.Instances.SpoC128Pad.Interface
 
-namespace Challenge.SpoC128DS
+namespace Challenge.SpoC128Pad
 
 open RandomSystems
 open RandomSystems.CR18
-open Golf.Instances.SpoC128DS
+open Golf.Instances.SpoC128Pad
 
 /-- **What a submission is**, indexed by the score it claims.
 
@@ -40,4 +40,4 @@ structure Solution (budget advNum advDen : Nat) where
   wins : Golf.Attack.Wins (G := game) ⟨strategy, verdict⟩ budget
     ((advNum : Real) / (advDen : Real))
 
-end Challenge.SpoC128DS
+end Challenge.SpoC128Pad

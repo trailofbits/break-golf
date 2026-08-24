@@ -66,21 +66,20 @@
       "timeout_seconds": 1200
     },
     {
-      "slug": "spoc128-ds",
-      "title": "SpoC-128-DS",
-      "blurb": "SpoC-128 with the nonce domain-separated from the mode controls. The published three-query key recovery cannot be addressed here. Whether anything else can is open.",
+      "slug": "spoc128-pad",
+      "title": "SpoC-128-Pad",
+      "blurb": "SpoC-128 with the empty message padded to a single zero block \u2014 an attempt to close the published three-query key recovery.",
       "tags": [
         "aead",
         "nist-lwc",
-        "variant",
-        "open"
+        "variant"
       ],
       "par_bits": 128,
       "baseline_bits": 128.0,
       "files": [
         {
           "name": "SpoC/DDC.lean",
-          "what": "the mode, unchanged from spoc128",
+          "what": "the base mode",
           "url": "https://github.com/MarcIlunga/random-systems/blob/08aec7a7/RandomSystems/SpoC/DDC.lean"
         },
         {
@@ -89,34 +88,39 @@
           "url": "https://github.com/MarcIlunga/random-systems/blob/08aec7a7/RandomSystems/SpoC/NIST.lean"
         },
         {
-          "name": "Instances/SpoC128DS/Interface.lean",
-          "what": "the game, and the nonce restriction",
-          "url": "https://github.com/trailofbits/break-golf/blob/main/Golf/Instances/SpoC128DS/Interface.lean"
+          "name": "Instances/SpoC128Pad/Interface.lean",
+          "what": "the padding, and the game",
+          "url": "https://github.com/trailofbits/break-golf/blob/main/Golf/Instances/SpoC128Pad/Interface.lean"
         },
         {
-          "name": "Challenges/SpoC128DS/Challenge.lean",
+          "name": "Challenges/SpoC128Pad/Challenge.lean",
           "what": "the type you must inhabit",
-          "url": "https://github.com/trailofbits/break-golf/blob/main/challenges/Challenges/SpoC128DS/Challenge.lean"
+          "url": "https://github.com/trailofbits/break-golf/blob/main/challenges/Challenges/SpoC128Pad/Challenge.lean"
         },
         {
           "name": "Solve.template.lean",
           "what": "starting point",
-          "url": "https://github.com/trailofbits/break-golf/blob/main/challenges/SpoC128DS/Solve.template.lean"
+          "url": "https://github.com/trailofbits/break-golf/blob/main/challenges/SpoC128Pad/Solve.template.lean"
+        },
+        {
+          "name": "Solve.pad.lean",
+          "what": "solved \u2014 the 2-query forgery",
+          "url": "https://github.com/trailofbits/break-golf/blob/main/examples/Solve.pad.lean"
         }
       ],
       "setup": [
         "git clone https://github.com/trailofbits/break-golf && cd break-golf",
         "mkdir -p .lake/packages && cp -R vendor/abstract-crypto .lake/packages/abstract-crypto",
         "lake build Golf Challenges",
-        "mkdir -p solutions/Solution/SpoC128DS",
-        "cp challenges/SpoC128DS/Solve.template.lean solutions/Solution/SpoC128DS/Solve.lean",
+        "mkdir -p solutions/Solution/SpoC128Pad",
+        "cp challenges/SpoC128Pad/Solve.template.lean solutions/Solution/SpoC128Pad/Solve.lean",
         "# edit it, then:",
         "lake build Solutions"
       ],
-      "instance_name": "SpoC128DS",
+      "instance_name": "SpoC128Pad",
       "advantage_exponent": 2,
-      "solution_name": "Solution.SpoC128DS.solution",
-      "solution_type": "Challenge.SpoC128DS.Solution",
+      "solution_name": "Solution.SpoC128Pad.solution",
+      "solution_type": "Challenge.SpoC128Pad.Solution",
       "permitted_axioms": [
         "propext",
         "Quot.sound",

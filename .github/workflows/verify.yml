@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       challenge:
-        description: "Challenge slug (spoc128, spoc128-ds)"
+        description: "Challenge slug (spoc128, spoc128-pad)"
         required: true
       body:
         description: "Submission body: budget, advantage, and a fenced lean block"
@@ -120,7 +120,7 @@ jobs:
         shell: bash
         working-directory: ${{ steps.lean.outputs.project }}
         run: |
-          if printf '```lean\ndef solution : Challenge.SpoC128DS.Solution := s\n```\n' \
+          if printf '```lean\ndef solution : Challenge.SpoC128Pad.Solution := s\n```\n' \
                | python3 tools/verify.py spoc128; then
             echo "::error::a submission naming another challenge was accepted"; exit 1
           fi

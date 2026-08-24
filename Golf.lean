@@ -5,4 +5,4 @@ challenge instance. The verifier builds this, then the challenge's own
 -/
 import Golf.Game
 import Golf.Instances.SpoC128.Interface
-import Golf.Instances.SpoC128DS.Interface
+import Golf.Instances.SpoC128Pad.Interface
