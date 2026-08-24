@@ -52,11 +52,14 @@ function renderChallenges() {
     <p><b>Changed from ${esc(c.variant_of || "")}.</b> ${esc(c.what_changed)}</p>
     <p><b>Why.</b> ${esc(c.why)}</p>
   </div>` : ""}
-  ${c.comparison_points.length ? `<ul>${c.comparison_points.map((p) =>
-    `<li><b>${esc(p.name)}</b> — ${fmtBits(p.score_bits)} bits. ${esc(p.caveats)}</li>`).join("")}</ul>` : ""}
+  <div>
+    <span class="lbl">files</span>
+    <ul class="files">${c.files.map((f) =>
+      `<li><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a> — ${esc(f.what)}</li>`).join("")}</ul>
+  </div>
   <details>
-    <summary>The pinned statement (Challenge.lean — trusted, not yours to edit)</summary>
-    <pre><code>${esc(c.challenge_lean)}</code></pre>
+    <summary>Build it locally</summary>
+    <pre><code>${c.setup.map(esc).join("\n")}</code></pre>
   </details>
   <p class="meta">exponent ${c.advantage_exponent} &middot; par ${c.par_bits} bits, ${esc(c.par_source)} &middot; axioms ${c.permitted_axioms.map(esc).join(", ")} &middot; ${c.timeout_seconds}s</p>
 </div>

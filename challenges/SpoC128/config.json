@@ -15,12 +15,7 @@
     "advantage_exponent": 2,
     "display": "log2",
     "note": "score = log2(budget / advantage^exponent), the security level in bits the attack refutes. Lower is better. No target advantage is fixed: the board measures what a submission proves, because on a new design nobody knows what is reachable.",
-    "exponent_rationale": "Decision game: advantage a needs ~a^-2 repetitions to amplify to constant confidence, so q/a^2 is the cost of deciding. Search-flavoured challenges (key recovery, forgery) set 1. No default is baked in; see Micciancio-Walter, On the Bit Security of Cryptographic Primitives.",
-    "not_captured": [
-      "offline work: out of scope by decision \u2014 the board scores query complexity, information-theoretically",
-      "amplification: q/a^e assumes independent repetition is available",
-      "ties are not equivalences: the same bit level can hold very different results"
-    ]
+    "exponent_rationale": "Decision game: advantage a needs ~a^-2 repetitions to amplify to constant confidence, so q/a^2 is the cost of deciding. Search-flavoured challenges (key recovery, forgery) set 1. No default is baked in; see Micciancio-Walter, On the Bit Security of Cryptographic Primitives."
   },
   "par": {
     "claimed_security_bits": 128,
@@ -54,5 +49,46 @@
     "advNum": "Solution.SpoC128.advNum",
     "advDen": "Solution.SpoC128.advDen",
     "note": "Declared by the submission, in Lean. The Solution type is indexed by them, so they are part of what is proved; the verifier reads them back with #eval rather than parsing a form."
-  }
+  },
+  "files": [
+    {
+      "name": "SpoC/DDC.lean",
+      "what": "the mode: encrypt, decrypt, the sponge",
+      "url": "https://github.com/MarcIlunga/random-systems/blob/08aec7a7/RandomSystems/SpoC/DDC.lean"
+    },
+    {
+      "name": "SpoC/NIST.lean",
+      "what": "sLiSCP-light-256, with a NIST known-answer vector",
+      "url": "https://github.com/MarcIlunga/random-systems/blob/08aec7a7/RandomSystems/SpoC/NIST.lean"
+    },
+    {
+      "name": "Instances/SpoC128/Interface.lean",
+      "what": "the game: real vs ideal",
+      "url": "https://github.com/trailofbits/break-golf/blob/main/Golf/Instances/SpoC128/Interface.lean"
+    },
+    {
+      "name": "Challenges/SpoC128/Challenge.lean",
+      "what": "the type you must inhabit",
+      "url": "https://github.com/trailofbits/break-golf/blob/main/challenges/Challenges/SpoC128/Challenge.lean"
+    },
+    {
+      "name": "Solve.template.lean",
+      "what": "starting point",
+      "url": "https://github.com/trailofbits/break-golf/blob/main/challenges/SpoC128/Solve.template.lean"
+    },
+    {
+      "name": "Solve.reference.lean",
+      "what": "solved \u2014 the 3-query attack",
+      "url": "https://github.com/trailofbits/break-golf/blob/main/examples/Solve.reference.lean"
+    }
+  ],
+  "setup": [
+    "git clone https://github.com/trailofbits/break-golf && cd break-golf",
+    "mkdir -p .lake/packages && cp -R vendor/abstract-crypto .lake/packages/abstract-crypto",
+    "lake build Golf Challenges",
+    "mkdir -p solutions/Solution/SpoC128",
+    "cp challenges/SpoC128/Solve.template.lean solutions/Solution/SpoC128/Solve.lean",
+    "# edit it, then:",
+    "lake build Solutions"
+  ]
 }

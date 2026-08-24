@@ -35,7 +35,6 @@ def load() -> list[dict]:
                 "tags": cfg.get("tags", []),
                 "advantage_exponent": scoring["advantage_exponent"],
                 "exponent_rationale": scoring.get("exponent_rationale", ""),
-                "not_captured": scoring.get("not_captured", []),
                 "par_bits": cfg["par"]["claimed_security_bits"],
                 "par_source": cfg["par"]["source"],
                 "baseline_bits": bits(
@@ -50,6 +49,8 @@ def load() -> list[dict]:
                 "why": cfg.get("why", ""),
                 "not_claimed": cfg.get("not_claimed", ""),
                 "comparison_points": cfg.get("comparison_points", []),
+                "files": cfg.get("files", []),
+                "setup": cfg.get("setup", []),
                 "permitted_axioms": cfg["permitted_axioms"],
                 "solution_name": cfg["solution_name"],
                 "solution_type": cfg["solution_type"],

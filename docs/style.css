@@ -99,3 +99,5 @@ footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--rule);
 .meta{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);line-height:1.6;}
 details summary{cursor:pointer;font-size:.9rem;}
 details pre{margin-top:.5rem;}
+.files{margin-top:.4rem;font-size:.87rem;}
+.files a{font-family:var(--f-mono);font-size:.85em;}
