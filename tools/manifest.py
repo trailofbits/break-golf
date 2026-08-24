@@ -40,6 +40,7 @@ def load() -> list[dict]:
                 ),
                 "files": cfg.get("files", []),
                 "setup": cfg.get("setup", []),
+                "solve_template": (CHALLENGES / cfg["instance_name"] / "Solve.template.lean").read_text(),
                 # used by tools/verify.py, not rendered
                 "instance_name": cfg["instance_name"],
                 "advantage_exponent": scoring["advantage_exponent"],

@@ -82,24 +82,6 @@ function updateScore() {
     "there is nothing to claim here.";
 }
 
-function issueBody() {
-  return [
-    "**Assisted by:** " + ($("f-assist").value || "_unstated_"),
-    `**Notes:** ${$("f-desc").value || "_none_"}`,
-    "",
-    "### Solve.lean",
-    "",
-    "```lean",
-    $("f-solve").value,
-    "```",
-    "",
-    "---",
-    "<sub>The score is not in this issue. Your `budget`, `advNum` and `advDen` are",
-    "definitions in the Lean below, and the challenge type is indexed by them — CI",
-    "reads them back out of Lean after the proof checks.</sub>",
-  ].join("\n");
-}
-
 function wireForm() {
   const sel = $("f-challenge");
   sel.innerHTML = MANIFEST.challenges
@@ -120,10 +102,11 @@ function wireForm() {
         "<code>docs/data/site.json</code> and the submit button will open an issue there.";
       return;
     }
+    // The body does not travel in the URL: a real solve is ~15k encoded and
+    // GitHub rejects request URLs around 8k. The issue form carries it instead.
     const url = new URL(`https://github.com/${SITE.repo}/issues/new`);
+    url.searchParams.set("template", "submission.yml");
     url.searchParams.set("title", `verify: ${currentChallenge().slug}`);
-    url.searchParams.set("body", issueBody());
-    url.searchParams.set("labels", "submission");
     window.open(url.toString(), "_blank", "noopener");
   });
 }

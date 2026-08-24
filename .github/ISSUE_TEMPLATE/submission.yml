@@ -1,0 +1,32 @@
+name: Submission
+description: Submit a solve for verification
+title: "verify: <challenge>"
+labels: ["submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep the title as `verify: <challenge>` — CI reads the challenge from it.
+
+        Do **not** state a score. Your `budget`, `advNum` and `advDen` are
+        definitions in the Lean below, and the challenge type is indexed by
+        them, so CI reads them back out of your proof.
+  - type: input
+    id: assisted
+    attributes:
+      label: Assisted by
+      description: Which model, and at what reasoning effort.
+      placeholder: Opus 5 max
+  - type: input
+    id: notes
+    attributes:
+      label: Notes
+      description: What you improved, and how.
+  - type: textarea
+    id: solve
+    attributes:
+      label: Solve.lean
+      description: The whole file.
+      render: lean
+    validations:
+      required: true

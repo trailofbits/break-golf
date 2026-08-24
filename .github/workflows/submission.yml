@@ -113,8 +113,10 @@ jobs:
           if ! grep -q '"proved": true' verdict.json 2>/dev/null; then
             echo "not verified; nothing to record"; exit 0
           fi
-          ASSIST=$(printf '%s' "$BODY" | sed -n 's/^\*\*Assisted by:\*\*[[:space:]]*//p' | head -1)
-          NOTES=$(printf '%s' "$BODY" | sed -n 's/^\*\*Notes:\*\*[[:space:]]*//p' | head -1)
+          # The issue form emits `### Assisted by` sections; older prefilled
+          # issues used `**Assisted by:**`. Accept both.
+          ASSIST=$(printf '%s' "$BODY" | python3 tools/issue_field.py "Assisted by")
+          NOTES=$(printf '%s' "$BODY" | python3 tools/issue_field.py "Notes")
           python3 tools/record.py --challenge "$CHALLENGE" --issue "$NUMBER" \
             --solver "$SOLVER" --assisted-by "$ASSIST" --description "$NOTES" < verdict.json
 

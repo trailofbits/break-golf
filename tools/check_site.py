@@ -29,7 +29,8 @@ def main() -> int:
             print(f"missing {asset}", file=sys.stderr); bad += 1
 
     manifest = json.loads((DOCS / "data" / "manifest.json").read_text())
-    fields = set(re.findall(r"\bc\.([a-z_]+)", js))
+    fields = (set(re.findall(r"\bc\.([a-z_]+)", js))
+              | set(re.findall(r"currentChallenge\(\)\.([a-z_]+)", js)))
     for c in manifest["challenges"]:
         for f in sorted(fields - set(c)):
             print(f"{c['slug']}: app.js reads c.{f}, absent from the manifest", file=sys.stderr); bad += 1
